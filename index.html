@@ -193,7 +193,7 @@ function hbar(target, rows, key, labelFn, opts={}) {
 /* ---- monthly columns + sparkline + total bar ---- */
 function mbar(target, key, opts) {
   const rows = DATA.totals;
-  const W=1040, rowH=30, m={t:28,r:76,b:26,l:104};
+  const W=1040, rowH=30, m={t:28,r:(opts.dot?190:76),b:26,l:104};
   const H = rows.length*rowH + m.t + m.b;
   const mw = 46, mx0 = m.l + 8;
   const sx0 = mx0 + MONTHS.length*mw + 12, sw = 88;
@@ -222,6 +222,10 @@ function mbar(target, key, opts) {
   }
   rows.forEach((r,i)=>{
     const cy = m.t + i*rowH + rowH/2;
+    if (i%2===0) {
+      s += `<rect x="0" y="${cy-rowH/2}" width="${W}" height="${rowH}" `
+         + `fill="var(--ink)" opacity="0.04"/>`;
+    }
     s += `<text class="ax" x="${m.l-10}" y="${cy+4}" text-anchor="end" fill="var(--ink)">${r.bureau}</text>`;
     const vals = MONTHS.map(mo=>cell(r.bureau,mo));
     vals.forEach((v,j)=>{
@@ -239,7 +243,8 @@ function mbar(target, key, opts) {
       s += `<circle cx="${last[0]}" cy="${last[1]}" r="2.4" fill="var(--accent)"/>`;
     }
     const v = n(r[key]);
-    const fill = opts.accent && opts.accent(r) ? 'var(--accent)' : 'var(--faint)';
+    const fill = opts.dot ? CEN[DATA.order.indexOf(r.bureau) % CEN.length]
+      : (opts.accent && opts.accent(r) ? 'var(--accent)' : 'var(--faint)');
     if (opts.dot) {
       s += `<line x1="${bx0}" y1="${cy}" x2="${W-m.r}" y2="${cy}" stroke="var(--grid)" stroke-width="1"/>`;
       s += `<circle cx="${x(v)}" cy="${cy}" r="5.5" fill="${fill}">`
@@ -248,7 +253,8 @@ function mbar(target, key, opts) {
       s += `<rect x="${bx0}" y="${cy-7}" width="${Math.max(1,x(v)-bx0)}" height="14" rx="3" fill="${fill}">`
          + `<title>${r.bureau}: ${opts.tip(r)}</title></rect>`;
     }
-    s += `<text class="ax" x="${x(v)+9}" y="${cy+4}">${opts.end(r)}</text>`;
+    s += `<text class="ax" x="${x(v)+9}" y="${cy+4}">${opts.end(r)}`
+       + `${opts.dot ? `<tspan fill="${fill}">  ${r.bureau}</tspan>` : ''}</text>`;
   });
   el(target).innerHTML = s+'</svg>';
 }
