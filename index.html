@@ -283,7 +283,7 @@ function monthly() {
 
 /* ---- trend lines by centre ---- */
 function trend(target, field, opts) {
-  const W=560, m={t:18,r:96,b:34,l:46}, H=262+m.t+m.b;
+  const W=560, m={t:18,r:104,b:34,l:46}, H=262+m.t+m.b;
   const ok = r => r && r[field] !== '' && r[field] != null;
   const B = DATA.order.filter(b => DATA.monthly.some(r => r.bureau===b && ok(r)));
   const vals = DATA.monthly.filter(ok).map(r => n(r[field]));
@@ -332,12 +332,18 @@ function trend(target, field, opts) {
          + `<title>${b} · ${MONTHS[p.i]}: ${opts.tip(p.v)}</title></circle>`;
     });
     const last = pts.slice().reverse().find(Boolean);
-    if (last) labels.push({b, col, lx:X(last.i)+8, ly:Y(last.v)});
+    if (last) labels.push({b, col, px:X(last.i), py:Y(last.v), lx:X(last.i)+14, ly:Y(last.v)});
   });
   labels.sort((a,b)=>a.ly-b.ly);
   for (let i=1;i<labels.length;i++)
     if (labels[i].ly - labels[i-1].ly < 12.5) labels[i].ly = labels[i-1].ly + 12.5;
+  const drop = (labels[labels.length-1] || {}).ly - (H-m.b);
+  if (drop > 0) labels.forEach(L => { L.ly -= drop; });
   labels.forEach(L=>{
+    if (Math.abs(L.ly - L.py) > 2) {
+      s += `<path fill="none" stroke="${L.col}" stroke-width="0.9" opacity="0.55" `
+         + `d="M${L.px+4},${L.py} L${L.lx-9},${L.ly} L${L.lx-3},${L.ly}"/>`;
+    }
     s += `<text x="${L.lx}" y="${L.ly+3.5}" fill="${L.col}" font-size="10.5">${L.b}</text>`;
   });
   el(target).innerHTML = s+'</svg>';
